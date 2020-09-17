@@ -6,7 +6,7 @@ btFamily is a search plug-in for "qBittorrent" software. It provides powerful an
 Install:
 ========
 
-1. Download the "btFamily.py" Documents.
+1. Download the "bt_family.py" Documents.
 2. Install the special software "qbittorrent" for BT download.
 3. Open "qbittorrent" - > View → search engine.
 4. Switch to the "search" tab and click "search plug-in" in the lower right corner. 
@@ -39,7 +39,7 @@ btFamily 是专门用于qBittorrent软件的搜索插件，其为中国“BT之�
 安装方法:
 ========
 
-1.下载本项目的btFamily.py文件.
+1.下载本项目的bt_family.py文件.
 2.安装BT下载专用软件"qBittorrent"。
 3.依次打开"qBittorrent" -> 视图 -> 搜索引擎。
 4.切换到“搜索"标签并点击右下角的"搜索插件"。点击"安装一个新的搜索引擎",在插件来源上点击本地文件选择刚下载的btFamily.py文件。
