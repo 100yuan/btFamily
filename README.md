@@ -34,7 +34,7 @@ In the "-n9" command provides you with thousands of eye-catching adult movies fo
 
 CHINESE README.
 ===============
-btFamily 是专门用于qBittorrent软件的搜索插件，其为中国“BT之家”网站提供强大、快捷的BT种子搜索功能，能在BT软件　"qBittorrent"(网址：http://www.3btjia.com/)　搜索栏提供如在命令行般方便的操作方式。
+btFamily 是专门用于qBittorrent软件的搜索插件，其为中国“BT之家”网站(网址：http://www.3btjia.com/)提供强大、快捷的BT种子搜索功能，能在BT软件 "qBittorrent" 搜索栏提供如在命令行般方便的操作方式。
 
 安装方法:
 ========
