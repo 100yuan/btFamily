@@ -3,15 +3,14 @@
 
 # LICENSING INFORMATION
 
-from urllib.request import urlopen, Request
-from urllib.parse import quote
+from requests import get
 from re import findall, search, S
 from threading import Thread
 from helpers import download_file
 from novaprinter import prettyPrinter
 
 
-#############外部函数#############
+#############OutSiteMethod#############
 def __help():
     return '''Options: （插件高级用法,在搜索栏输入以下标签.）
  ....... --help	显示帮助.
@@ -31,7 +30,7 @@ def scan_print(msg=__help()):
         print(f'-1|{i}   {msg[i]}|-1|-1|-1|-1')
 
 
-#############!外部函数############
+#############!OutSiteMethod############
 
 
 class bt_family(object):
@@ -53,12 +52,11 @@ class bt_family(object):
         self.__page_list = []
 
     def __get_url(self, url):
-        response = Request(url, headers=self.__header, method='GET')
         try:
-            response = urlopen(response, timeout=0.6).read()
+            response = get(url, headers=self.__header, timeout=0.6)
         except:
             return self.__get_url(url)
-        return response.decode('utf-8')
+        return response.text
 
     def __select(self, what):
         if what == '--help':
@@ -67,7 +65,7 @@ class bt_family(object):
         elif what[:2] == '-n':
             return '/forum-index-fid-' + what[2:].strip()
         else:
-            return '/search-index-fid-0-orderby-timedesc-daterage-0-keyword-' + quote(what)
+            return '/search-index-fid-0-orderby-timedesc-daterage-0-keyword-' + what
 
     def __desc_list(self, url):
         bt_list = self.__get_url(url)
