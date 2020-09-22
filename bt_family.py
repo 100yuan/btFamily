@@ -114,7 +114,6 @@ class bt_family(object):
     # This function will be the one called by nova2.py
     def search(self, what, cat='all'):
         statu = self.__url_msg(what)
-        print(self.__page_list)
         if statu != 'end':
             for i in self.__page_list:
                 Thread(target=self.__get_dic_lis, args=[i]).start()
