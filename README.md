@@ -39,10 +39,14 @@ btFamily 是专门用于qBittorrent软件的搜索插件，其为中国“BT之�
 安装方法:
 ========
 
+方法一：
 1.下载本项目的bt_family.py文件.
 2.安装BT下载专用软件"qBittorrent"。
 3.依次打开"qBittorrent" -> 视图 -> 搜索引擎。
 4.切换到“搜索"标签并点击右下角的"搜索插件"。点击"安装一个新的搜索引擎",在插件来源上点击本地文件选择刚下载的btFamily.py文件。
+
+方法二：
+如果觉得方法一略显麻烦，请将网址 https://raw.githubusercontent.com/100yuan/btFamily/master/bt_family.py 直接到qBittorrent搜索插件添加网址，便一步到位安装完毕。
 
 使用方法:
 ========
