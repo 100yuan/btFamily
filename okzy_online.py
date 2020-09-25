@@ -1,8 +1,9 @@
-# VERSION: 1.00
+# VERSION: 1.01
 # AUTHORS: xuziqiang (158856471@qq.com)
 
 # LICENSING INFORMATION
-from re import findall, search, S
+from re import findall, S
+from threading import Thread
 from urllib.request import Request, urlopen
 from novaprinter import prettyPrinter
 
@@ -21,8 +22,11 @@ class okzy_online(object):
     name = 'OK资源网(在线)'
     supported_categories = {'all': 'all', 'anime': 'anime', 'movies': 'movies', 'tv': 'tv'}
 
-    page_list = []
-    pags = 20 #搜索深度要翻页次数
+    page_urls, desc_list = [], []
+    pags = 10 # 搜索深度要翻页次数
+    request_timeout = 0.6 # 网页请求超时设置
+    thread_count = 2 # 搜索线程数,可设置更高，但python标准库urllib在多线程下不稳定，要是有兴趣可以切换成requests库，线程可以无限开不出错。
+    page_empty = 7800
     header = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0'}
     __help = '''Options: （插件高级用法,在搜索栏输入以下标签.）
      ....... --help      显示帮助.
@@ -69,14 +73,14 @@ class okzy_online(object):
         def error(self, message):
             pass
 
-        UL, LI, INPUT, HREF = ('ul', 'li', 'input', 'href')
+        UL, LI, INPUT = ('ul', 'li', 'input')
 
-        def __init__(self, url, desc_link):
+        def __init__(self, url, msgs):
             HTMLParser.__init__(self)
             self.url = url
-            self.desc_link = desc_link
+            self.desc_link = url + msgs[0]
+            self.swap_name = '[{0}][{1}]{2}-'.format(msgs[3], msgs[2], msgs[1])
             self.current_item = {}  # dict for found item
-            self.page_empty = 22000
             self.inside_ul = False
             self.inside_li = False
             self.findTable = False
@@ -105,7 +109,7 @@ class okzy_online(object):
 
             if self.inside_li:
                 if not self.current_item.get('name'):
-                    self.current_item['name'] = data.strip()
+                    self.current_item['name'] = self.swap_name + data.strip()
                 else:
                     self.current_item['name'] += data.strip()
 
@@ -131,34 +135,47 @@ class okzy_online(object):
     def __urlGet(self, url):
         link = Request(url, headers=self.header)
         try:
-            response = urlopen(link, timeout=0.6).read()
+            response = urlopen(link, timeout=self.request_timeout).read()
         except:
             return self.__urlGet(url)
         return response.decode('utf-8')
 
-    def __get_pageUrl(self, url):
+    def form_msg(self, url):
         html = self.__urlGet(url)
-        msg = findall(
-            r'class="xing_vb4".*?href="([^"]+)"\s+target=".*?">(.*?)<.*?"xing_vb5">(.*?)<.*?"xing_vb6">(.*?)<', html, S)
-        if not msg:
-            return 'END'
-        self.page_list += msg
+        if len(html) > self.page_empty:
+            msg = findall(
+                r'class="xing_vb4".*?href="([^"]+)"\s+target=".*?">(.*?)<.*?"xing_vb5">(.*?)<.*?"xing_vb6">(.*?)<', html, S)
+            if not msg:
+                return 'END'
+            self.desc_list += msg
+        try: url = self.page_urls.pop()
+        except: return
+        self.form_msg(url)
 
     def __get_preprint(self, msgs):
         url = self.url + msgs[0]
         response = self.__urlGet(url)
-        preMsg = search(r'>\s*kuyun\s*<.*?<ul>.*?</ul>', response, S)
-        if not preMsg:
-            return
-        del response
-        preMsg = findall(r'value="(https?://.*?)"', preMsg[0], S)
-        inmsg = '[更新:{0}][{1}]{2}-'.format(msgs[-1], msgs[2], msgs[1])
-        for link in preMsg:
-            name = inmsg + search(r'[^/]+$', link)[0]
-            link = quote(link, safe='/:')
-            dic = {'name': name, 'seeds': '-1', 'leech': '-1', 'size': '-1', 'link': '-1', 'desc_link': link,
-                   'engine_url': self.url}
-            prettyPrinter(dic)
+        if len(response) > self.page_empty:
+            myhtml = self.MyHtmlParser(self.url, msgs)
+            myhtml.feed(response)
+            myhtml.close()
+        try: desc = self.desc_list.pop()
+        except: return
+        self.__get_preprint(desc)
+
+    def __thread(self, lis, target):
+        tables = []
+        thread_count = self.thread_count
+        len_lis = len(lis)
+        if len_lis < thread_count:
+            thread_count = len_lis
+        for i in range(thread_count):
+            if lis:
+                table = Thread(target=target, args=[lis.pop()])
+                tables.append(table)
+                table.start()
+        for table in tables:
+            table.join()
 
     def download_torrent(self, info):
         from helpers import download_file
@@ -172,12 +189,10 @@ class okzy_online(object):
             return
         if query[:2] == '-n':
             for page in range(1, self.pags + 1):
-                page_url = "{0}/?m=vod-type-id-{1}-pg-{2}.html".format(self.url, query[2:].strip(), page)
-                self.__get_pageUrl(page_url)
+                self.page_urls.append("{0}/?m=vod-type-id-{1}-pg-{2}.html".format(self.url, query[2:].strip(), page))
         else:
             for page in range(1, self.pags + 1):
-                page_url = "{0}/index.php?m=vod-search-pg-{1}-wd-{2}.html".format(self.url, page, query)
-                if self.__get_pageUrl(page_url):
-                    break
-        for msgs in self.page_list:
-            self.__get_preprint(msgs)
+                self.page_urls.append("{0}/index.php?m=vod-search-pg-{1}-wd-{2}.html".format(self.url, page, query))
+        self.__thread(self.page_urls, self.form_msg)
+        self.__thread(self.desc_list, self.__get_preprint)
+
