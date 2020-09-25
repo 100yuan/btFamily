@@ -18,7 +18,7 @@ except ImportError:
 
 class okzy_online(object):
     url = 'http://www.okzyw.com'
-    name = 'OK资源网'
+    name = 'OK资源网(在线)'
     supported_categories = {'all': 'all', 'anime': 'anime', 'movies': 'movies', 'tv': 'tv'}
 
     page_list = []
